@@ -20,7 +20,15 @@ const maxFileSizeBytes = 10 * 1024 * 1024;
 const maxFiles = 5;
 
 function statusLabel(status: string) {
-  return status === "EVIDENCE_FOUND" ? "Evidence found" : status === "MISSING_EVIDENCE" ? "Missing evidence" : "Unsupported";
+  const labels: Record<string, string> = {
+    FULLY_COVERED: "Fully covered",
+    PARTIALLY_COVERED: "Partially covered",
+    NEEDS_REVIEW: "Needs review",
+    NO_EVIDENCE: "No evidence",
+    NOT_COVERED: "Not covered",
+    UNSUPPORTED_CONTROL: "Unsupported",
+  };
+  return labels[status] ?? status;
 }
 
 function fileExtension(fileName: string) {

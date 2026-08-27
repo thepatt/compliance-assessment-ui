@@ -13,7 +13,7 @@ export type Control = {
 
 export type ControlResult = {
   control_id: string;
-  status: "EVIDENCE_FOUND" | "MISSING_EVIDENCE" | "UNSUPPORTED_CONTROL";
+  status: "FULLY_COVERED" | "PARTIALLY_COVERED" | "NEEDS_REVIEW" | "NO_EVIDENCE" | "NOT_COVERED" | "UNSUPPORTED_CONTROL";
   summary: string;
   evidence: { artifact_name: string; source_location: string; excerpt: string }[];
   missing_evidence: string[];
