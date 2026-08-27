@@ -1,19 +1,21 @@
 import type { Assessment, Control, EvidencePreview } from "./types";
 
-const API_ROOT = "/api/v1";
+// doc-cat-api requires a tenant on every request (no login yet, header only).
+const TENANT_ID = "tenant-001";
+const API_ROOT = "/api/v1/compliance-assessments";
+
+function tenantHeaders(): HeadersInit {
+  return { "X-Tenant-Id": TENANT_ID };
+}
 
 function errorMessage(payload: unknown, fallback: string): string {
   if (!payload || typeof payload !== "object") return fallback;
-  const detail = (payload as { detail?: unknown }).detail;
-  if (typeof detail === "string") return detail;
-  if (detail && typeof detail === "object") {
-    const uploadDetail = detail as { message?: unknown; findings?: unknown };
-    if (typeof uploadDetail.message === "string") {
-      const findings = Array.isArray(uploadDetail.findings) ? uploadDetail.findings.filter((item): item is string => typeof item === "string") : [];
-      return findings.length ? `${uploadDetail.message} Found: ${findings.join(", ")}.` : uploadDetail.message;
-    }
-  }
-  return fallback;
+  const body = payload as { message?: unknown; errors?: { findings?: unknown } };
+  if (typeof body.message !== "string") return fallback;
+  const findings = Array.isArray(body.errors?.findings)
+    ? body.errors.findings.filter((item): item is string => typeof item === "string")
+    : [];
+  return findings.length ? `${body.message} Found: ${findings.join(", ")}.` : body.message;
 }
 
 function evidenceFormData(files: File[]): FormData {
@@ -28,14 +30,17 @@ async function checkedResponse(response: Response, fallback: string): Promise<Re
 }
 
 export async function loadControls(): Promise<Control[]> {
-  const response = await checkedResponse(await fetch(`${API_ROOT}/standards/hipaa-security-rule/controls`), "Could not load the HIPAA control catalog.");
+  const response = await checkedResponse(
+    await fetch(`${API_ROOT}/controls`, { headers: tenantHeaders() }),
+    "Could not load the HIPAA control catalog.",
+  );
   const payload = await response.json() as { controls: Control[] };
   return payload.controls;
 }
 
 export async function previewEvidenceFiles(files: File[]): Promise<EvidencePreview> {
   const response = await checkedResponse(
-    await fetch(`${API_ROOT}/evidence/preview`, { method: "POST", body: evidenceFormData(files) }),
+    await fetch(`${API_ROOT}/evidence/preview`, { method: "POST", headers: tenantHeaders(), body: evidenceFormData(files) }),
     "Evidence preflight could not be completed.",
   );
   return response.json() as Promise<EvidencePreview>;
@@ -50,13 +55,16 @@ export async function startAssessmentFromFiles(payload: {
   formData.append("name", payload.name);
   formData.append("control_ids", JSON.stringify(payload.controlIds));
   const response = await checkedResponse(
-    await fetch(`${API_ROOT}/assessments/from-files/async`, { method: "POST", body: formData }),
+    await fetch(`${API_ROOT}/assessments/from-files/async`, { method: "POST", headers: tenantHeaders(), body: formData }),
     "Evidence assessment could not be started.",
   );
   return response.json() as Promise<Assessment>;
 }
 
 export async function loadAssessment(assessmentId: string): Promise<Assessment> {
-  const response = await checkedResponse(await fetch(`${API_ROOT}/assessments/${assessmentId}`), "Could not refresh the assessment status.");
+  const response = await checkedResponse(
+    await fetch(`${API_ROOT}/assessments/${assessmentId}`, { headers: tenantHeaders() }),
+    "Could not refresh the assessment status.",
+  );
   return response.json() as Promise<Assessment>;
 }

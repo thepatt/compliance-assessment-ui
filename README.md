@@ -2,15 +2,18 @@
 
 React/TypeScript frontend for the HIPAA Security Rule compliance-assessment tool.
 Split out from the original `healthcare-compliance-platform` monorepo into its own
-repo; talks only to the backend's `/api/v1` HTTP endpoints (no shared code).
+repo; talks only to the backend's `/api/v1/compliance-assessments` HTTP endpoints
+(no shared code).
 
-The backend + ai-agent now live at `doc-cat-api/compliance-assessment`.
+The backend is integrated into `doc-cat-api`'s main app; only the `ai-agent`
+(evidence evaluation service) still lives standalone at
+`doc-cat-api/compliance-assessment/ai-agent`.
 
 ## Development
 
 ```bash
 npm install
-npm run dev   # proxies /api -> http://localhost:8100 (see vite.config.ts)
+npm run dev   # proxies /api -> http://localhost:8000 (see vite.config.ts)
 ```
 
 ## Production build
@@ -19,8 +22,8 @@ npm run dev   # proxies /api -> http://localhost:8100 (see vite.config.ts)
 docker build -t compliance-assessment-ui .
 ```
 
-`nginx.conf` proxies `/api/` to the backend — update the target for your actual
-deployment topology (currently defaults to `host.docker.internal:8100` for local
+`nginx.conf` proxies `/api/` to doc-cat-api — update the target for your actual
+deployment topology (currently defaults to `host.docker.internal:8000` for local
 Docker Desktop testing).
 
 ## Sharing a local test link (ngrok)
@@ -29,10 +32,10 @@ Simplest way to let someone else test a local run: tunnel only the frontend
 container's port. Its `nginx.conf` already proxies `/api/` to the backend, so a
 single tunnel exposes the whole app.
 
-1. Start the backend + ai-agent:
+1. Start doc-cat-api (backend, port 8000) and the compliance-assessment `ai-agent`:
    ```bash
-   cd ../doc-cat-api/compliance-assessment
-   docker compose up -d
+   cd ../doc-cat-api && uv run main.py &
+   cd compliance-assessment && docker compose up -d ai-agent
    ```
 2. Build and run the frontend container:
    ```bash
