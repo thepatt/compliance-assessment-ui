@@ -13,7 +13,7 @@ The backend is integrated into `doc-cat-api`'s main app; only the `ai-agent`
 
 ```bash
 npm install
-npm run dev   # proxies /api -> http://localhost:8000 (see vite.config.ts)
+npm run dev   # proxies /api -> http://localhost:8080 (see vite.config.ts)
 ```
 
 ## Production build
@@ -23,7 +23,7 @@ docker build -t compliance-assessment-ui .
 ```
 
 `nginx.conf` proxies `/api/` to doc-cat-api — update the target for your actual
-deployment topology (currently defaults to `host.docker.internal:8000` for local
+deployment topology (currently defaults to `host.docker.internal:8080` for local
 Docker Desktop testing).
 
 ## Sharing a local test link (ngrok)
@@ -32,7 +32,7 @@ Simplest way to let someone else test a local run: tunnel only the frontend
 container's port. Its `nginx.conf` already proxies `/api/` to the backend, so a
 single tunnel exposes the whole app.
 
-1. Start doc-cat-api (backend, port 8000) and the compliance-assessment `ai-agent`:
+1. Start doc-cat-api (backend, port 8080) and the compliance-assessment `ai-agent`:
    ```bash
    cd ../doc-cat-api && uv run main.py &
    cd compliance-assessment && docker compose up -d ai-agent
