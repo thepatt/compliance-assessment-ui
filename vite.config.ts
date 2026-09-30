@@ -5,8 +5,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      // Backend is now integrated into doc-cat-api's main app (default local port 8000).
-      "/api": "http://localhost:8000",
+      // Backend is now integrated into doc-cat-api's main app (default local port 8080).
+      "/api": "http://localhost:8080",
     },
   },
 });
